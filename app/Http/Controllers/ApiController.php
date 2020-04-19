@@ -69,7 +69,7 @@ class ApiController extends Controller
         }
     }
  
-    public function getAuthUser(Request $request)
+    public function getUser(Request $request)
     {
         $this->validate($request, [
             'token' => 'required'
@@ -78,5 +78,31 @@ class ApiController extends Controller
         $user = JWTAuth::authenticate($request->token);
  
         return response()->json(['user' => $user]);
+    }
+
+    public function updateUser(Request $request){
+        $this->validate($request,[
+            'token' => 'required'
+        ]);
+
+        $user = JWTAuth::authenticate($request->token);
+        
+        if($request->password != ''){
+            $user->password = bcrypt($request->password);
+        }
+        
+        $updated = $user->fill($request->only(['name','email']))->save();
+
+        if($updated){
+            return response()->json([
+                'success'=>true,
+                'user' => $user,
+            ]);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, media social could not be updated'
+            ],500);
+        }
     }
 }
